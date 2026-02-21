@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#6B3FA0"/>
+  <link rel="manifest" href="manifest.json"/>
+  <title>Diário de 40 Dias</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f3fa;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: #6B3FA0;
+      color: white;
+      padding: 16px 20px 12px;
+      text-align: center;
+    }
+    .header h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: 1px; }
+    .header p  { font-size: 0.75rem; opacity: 0.85; margin-top: 2px; }
+
+    /* ── NAVEGAÇÃO DE DIAS ── */
+    .day-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: white;
+      border-bottom: 1px solid #e8e0f5;
+      padding: 12px;
+    }
+    .day-nav button {
+      background: #6B3FA0;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px; height: 36px;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .day-nav button:disabled { background: #ccc; cursor: default; }
+    .day-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .day-badge {
+      background: #6B3FA0;
+      color: white;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 4px 14px;
+      border-radius: 20px;
+    }
+    .day-theme {
+      font-size: 0.85rem;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    /* ── CONTEÚDO ── */
+    .content {
+      flex: 1;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 6px rgba(107,63,160,0.08);
+    }
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #6B3FA0;
+      margin-bottom: 10px;
+    }
+    .card-title span { font-size: 1.1rem; }
+
+    /* Áudio */
+    .audio-card audio {
+      width: 100%;
+      margin-top: 8px;
+      accent-color: #6B3FA0;
+    }
+    .audio-link {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.82rem;
+      color: #6B3FA0;
+      text-decoration: underline;
+    }
+
+    /* Leitura */
+    .reading-text {
+      font-size: 0.9rem;
+      line-height: 1.65;
+      color: #333;
+    }
+
+    /* Micro-Ação */
+    .micro-card { background: #FFF8E7; border-left: 4px solid #F5A623; }
+    .micro-card .card-title { color: #C47B00; }
+    .micro-action-text {
+      font-size: 0.95rem;
+      font-style: italic;
+      color: #5a4200;
+      line-height: 1.5;
+    }
+
+    /* ── RODAPÉ: ANOTAÇÕES ── */
+    .annotations {
+      background: white;
+      border-top: 2px solid #e8e0f5;
+      padding: 16px;
+    }
+    .annotations label {
+      display: block;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #6B3FA0;
+      margin-bottom: 8px;
+    }
+    .annotations textarea {
+      width: 100%;
+      height: 110px;
+      border: 1.5px solid #d0bff0;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 0.9rem;
+      resize: none;
+      font-family: inherit;
+      color: #333;
+      line-height: 1.5;
+    }
+    .annotations textarea:focus {
+      outline: none;
+      border-color: #6B3FA0;
+    }
+    .save-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .save-btn {
+      background: #6B3FA0;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .save-btn:active { background: #4e2c7a; }
+    .saved-msg {
+      font-size: 0.82rem;
+      color: #2a9d2a;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .saved-msg.show { opacity: 1; }
+
+    /* ── PROGRESS BAR ── */
+    .progress-bar {
+      height: 4px;
+      background: #e0d4f5;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #6B3FA0;
+      transition: width 0.4s;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>✦ DIÁRIO DE 40 DIAS ✦</h1>
+    <p>Transformação · Um dia de cada vez</p>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <div class="day-nav">
+    <button id="prevBtn" onclick="changeDay(-1)">‹</button>
+    <div class="day-label">
+      <span class="day-badge" id="dayBadge">D01</span>
+      <span class="day-theme" id="dayTheme">Tema do dia</span>
+    </div>
+    <button id="nextBtn" onclick="changeDay(1)">›</button>
+  </div>
+
+  <div class="content">
+
+    <div class="card audio-card">
+      <div class="card-title"><span>🎧</span> Áudio do Dia</div>
+      <audio controls>
+        <source src="" type="audio/mpeg" id="audioSrc"/>
+        Seu navegador não suporta áudio.
+      </audio>
+      <a class="audio-link" id="audioLink" href="#" target="_blank">
+        🔗 Link direto MP3
+      </a>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span>📖</span> Leitura</div>
+      <p class="reading-text" id="readingText"></p>
+    </div>
+
+    <div class="card micro-card">
+      <div class="card-title"><span>⚡</span> Micro-Ação</div>
+      <p class="micro-action-text" id="microAction"></p>
+    </div>
+
+  </div>
+
+  <div class="annotations">
+    <label>✍️ Minhas Anotações</label>
+    <textarea id="noteArea" placeholder="Escreva aqui suas reflexões do dia..."></textarea>
+    <div class="save-row">
+      <button class="save-btn" onclick="saveNote()">Salvar anotação</button>
+      <span class="saved-msg" id="savedMsg">✅ Salvo!</span>
+    </div>
+  </div>
+
+  <script>
+    // ── DADOS DOS DIAS ──────────────────────────────────────────
+    const days = [
+      {
+        theme: "Pó e Recomeço",
+        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        reading: "Tudo o que foi, foi. O passado não define quem você é agora. Como o pó que se levanta com o vento, você tem a capacidade de recomeçar. Cada amanhecer é uma página em branco esperando pela sua história.",
+        micro: ""Escreva em um papel uma coisa que você quer deixar para trás. Amasse e jogue fora.""
+      },
+      {
+        theme: "Silêncio que Fala",
+        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        reading: "No silêncio existe uma linguagem que só o coração entende. Hoje, tire 5 minutos do barulho do mundo e ouça o que sua alma quer te dizer. A resposta que você busca pode estar mais próxima do que imagina.",
+        micro: ""Fique 5 minutos em silêncio total. Sem celular. Sem TV. Só você.""
+      },
+      {
+        theme: "Gratidão Radical",
+        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+        reading: "Gratidão não é fingir que está tudo bem. É reconhecer que, mesmo no caos, há algo de bom. Quem pratica gratidão radical enxerga oportunidades onde outros veem obstáculos. Comece pequeno — agradeça pelo ar.",
+        micro: ""Liste 3 coisas pelas quais você é grato HOJE, agora, neste momento.""
+      }
+    ];
+
+    const TOTAL_DAYS = 40;
+    let currentDay = 0;
+
+    // ── RENDERIZAR DIA ──────────────────────────────────────────
+    function renderDay(index) {
+      const d = days[index] || {
+        theme: `Reflexão do dia ${index + 1}`,
+        audioUrl: "",
+        reading: "Conteúdo em breve. Continue sua jornada.",
+        micro: ""Faça uma coisa hoje que seu eu futuro agradecerá.""
+      };
+
+      document.getElementById('dayBadge').textContent   = `D${String(index+1).padStart(2,'0')}`;
+      document.getElementById('dayTheme').textContent   = d.theme;
+      document.getElementById('audioSrc').src           = d.audioUrl;
+      document.getElementById('audioLink').href         = d.audioUrl;
+      document.getElementById('readingText').textContent = d.reading;
+      document.getElementById('microAction').textContent = d.micro;
+
+      // Barra de progresso
+      const pct = ((index + 1) / TOTAL_DAYS) * 100;
+      document.getElementById('progressFill').style.width = pct + '%';
+
+      // Botões de nav
+      document.getElementById('prevBtn').disabled = index === 0;
+      document.getElementById('nextBtn').disabled = index === TOTAL_DAYS - 1;
+
+      // Carregar anotação salva
+      const saved = localStorage.getItem(`diario-day-${index}`);
+      document.getElementById('noteArea').value = saved || '';
+
+      // Reset mensagem de salvo
+      document.getElementById('savedMsg').classList.remove('show');
+    }
+
+    function changeDay(dir) {
+      const next = currentDay + dir;
+      if (next >= 0 && next < TOTAL_DAYS) {
+        currentDay = next;
+        renderDay(currentDay);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    // ── SALVAR ANOTAÇÃO ─────────────────────────────────────────
+    function saveNote() {
+      const text = document.getElementById('noteArea').value;
+      localStorage.setItem(`diario-day-${currentDay}`, text);
+      const msg = document.getElementById('savedMsg');
+      msg.classList.add('show');
+      setTimeout(() => msg.classList.remove('show'), 2500);
+    }
+
+    // Autosave ao sair do textarea
+    document.getElementById('noteArea').addEventListener('blur', saveNote);
+
+    // ── SERVICE WORKER ──────────────────────────────────────────
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js');
+      });
+    }
+
+    // ── INIT ────────────────────────────────────────────────────
+    renderDay(0);
+  </script>
+
+</body>
+</html>

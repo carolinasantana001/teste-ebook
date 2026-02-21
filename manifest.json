@@ -1,0 +1,22 @@
+{
+  "name": "Diário de 40 Dias",
+  "short_name": "Diário",
+  "description": "Seu diário de transformação pessoal",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6B3FA0",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/6B3FA0/ffffff?text=D",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512/6B3FA0/ffffff?text=D",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
